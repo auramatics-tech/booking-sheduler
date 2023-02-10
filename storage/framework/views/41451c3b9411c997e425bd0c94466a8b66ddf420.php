@@ -1,8 +1,8 @@
-@extends('layouts.master')
-@section('title')
+
+<?php $__env->startSection('title'); ?>
 Booking Calendar
-@stop
-@section('css')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('css'); ?>
 
 <style>
     .modal-backdrop.show {
@@ -43,16 +43,17 @@ Booking Calendar
         background: transparent !important;
     }
 </style>
-<link href="{{ URL::asset('assets/css/booking.css') }}" rel="stylesheet" />
+<link href="<?php echo e(URL::asset('assets/css/booking.css')); ?>" rel="stylesheet" />
 <link href="//cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css?v=1675835876" rel="stylesheet" />
 
-@endsection
-@section('page-header')
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('page-header'); ?>
 <!-- breadcrumb -->
 <div class="breadcrumb-header justify-content-between">
     <div class="my-auto">
         <div class="d-flex">
-            <h4 class="content-title mb-0 my-auto"> {{ __('dash.dash') }}
+            <h4 class="content-title mb-0 my-auto"> <?php echo e(__('dash.dash')); ?>
+
             </h4><span class="text-muted mt-1 tx-13 mr-2 mb-0">/
                 Booking Calendar
             </span>
@@ -60,9 +61,9 @@ Booking Calendar
     </div>
 </div>
 <!-- breadcrumb -->
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
 <div class="bg-light-gray">
     <div class="">
@@ -86,18 +87,18 @@ Booking Calendar
                                         <label for="">Day Clone From:</label>
                                         <select name="" id="clone_form" class="w-100">
                                             <option value="">Select Day</option>
-                                            @foreach($period as $date)
-                                            <option value="{{ date('Y-m-d',strtotime($date))}}">{{ date('l', strtotime($date))}}</option>
-                                            @endforeach
+                                            <?php $__currentLoopData = $period; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e(date('Y-m-d',strtotime($date))); ?>"><?php echo e(date('l', strtotime($date))); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <div class="form-group">
                                         <label for="">Day Clone To:</label>
                                         <select name="" id="clone_to" class="w-100" multiple>
                                             <option value="">Select Day</option>
-                                            @foreach($period as $date)
-                                            <option value="{{ date('Y-m-d',strtotime($date))}}">{{ date('l', strtotime($date))}}</option>
-                                            @endforeach
+                                            <?php $__currentLoopData = $period; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e(date('Y-m-d',strtotime($date))); ?>"><?php echo e(date('l', strtotime($date))); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <button type="button" class="btn btn-secondary btn-sm" id="dayClone">Submit</button>
@@ -116,17 +117,17 @@ Booking Calendar
                                         <label for="">Day Clone From:</label>
                                         <select name="" id="clone_form1" class="w-100">
                                             <option value="">Select Day</option>
-                                            @foreach($period as $date)
-                                            <option value="{{ date('Y-m-d',strtotime($date))}}">{{ date('l', strtotime($date))}}</option>
-                                            @endforeach
+                                            <?php $__currentLoopData = $period; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e(date('Y-m-d',strtotime($date))); ?>"><?php echo e(date('l', strtotime($date))); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <div class="form-group">
                                         <label for="">To Complete Week</label>
                                         <select name="clone_all[]" id="clone_all" class="w-100 d-none" multiple>
-                                            @foreach($period as $date)
-                                            <option value="{{ date('Y-m-d',strtotime($date))}}" selected>{{ date('l', strtotime($date))}}</option>
-                                            @endforeach
+                                            <?php $__currentLoopData = $period; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e(date('Y-m-d',strtotime($date))); ?>" selected><?php echo e(date('l', strtotime($date))); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <button type="button" class="btn btn-secondary btn-sm" id="weekClone">Submit</button>
@@ -144,9 +145,9 @@ Booking Calendar
                                         <label for="">Day Clone From:</label>
                                         <select name="" id="clone_form2" class="w-100">
                                             <option value="">Select Day</option>
-                                            @foreach($period as $date)
-                                            <option value="{{ date('Y-m-d',strtotime($date))}}">{{ date('l', strtotime($date))}}</option>
-                                            @endforeach
+                                            <?php $__currentLoopData = $period; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $date): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?>
+                                            <option value="<?php echo e(date('Y-m-d',strtotime($date))); ?>"><?php echo e(date('l', strtotime($date))); ?></option>
+                                            <?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>
                                         </select>
                                     </div>
                                     <button type="button" class="btn btn-secondary btn-sm" id="monthClone">Submit</button>
@@ -175,7 +176,7 @@ Booking Calendar
         </div>
     </div>
 </div>
-@role('Student')
+<?php if(auth()->check() && auth()->user()->hasRole('Student')): ?>
 <!-- Modal -->
 <div class="modal fade" id="teachers_detail_modal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true">
     <div class="modal-dialog modal_flex">
@@ -196,9 +197,9 @@ Booking Calendar
         </div>
     </div>
 </div>
-@endrole
-@endsection
-@section('js')
+<?php endif; ?>
+<?php $__env->stopSection(); ?>
+<?php $__env->startSection('js'); ?>
 <script type="text/javascript">
     $(document).ready(function() {
         var defaultSlot = "midnight";
@@ -214,7 +215,7 @@ Booking Calendar
 
     function get_slots(defaultSlot) {
         $.ajax({
-            url: "{{ route('teacher.get_slots') }}",
+            url: "<?php echo e(route('teacher.get_slots')); ?>",
             type: 'GET',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -226,7 +227,7 @@ Booking Calendar
             }
         });
     }
-    @role('Teacher')
+    <?php if(auth()->check() && auth()->user()->hasRole('Teacher')): ?>
     $(document).on('click', '.b_slots', function() {
         var value = $(this).attr('data-date');
         var value1 = $(this).attr('data-time');
@@ -238,7 +239,7 @@ Booking Calendar
         $('#slot_msg').html('');
         if (time)
             $.ajax({
-                url: "{{ route('teacher.save_slots') }}",
+                url: "<?php echo e(route('teacher.save_slots')); ?>",
                 type: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -268,7 +269,7 @@ Booking Calendar
         var value1 = $(this).attr('data-time');
         if (time)
             $.ajax({
-                url: "{{ route('teacher.cancel_slots') }}",
+                url: "<?php echo e(route('teacher.cancel_slots')); ?>",
                 type: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -289,13 +290,13 @@ Booking Calendar
                 }
             });
     })
-    @endrole
-    @role('Student')
+    <?php endif; ?>
+    <?php if(auth()->check() && auth()->user()->hasRole('Student')): ?>
     $(document).on('click', '.a_slots', function() {
         var start = $(this).attr('data-date');
         var time = $(this).attr('data-time');
         $.ajax({
-            url: "{{ route('student.get_teachers_details') }}",
+            url: "<?php echo e(route('student.get_teachers_details')); ?>",
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -326,7 +327,7 @@ Booking Calendar
             }
         });
     })
-    @endrole
+    <?php endif; ?>
     const first = document.getElementById("clone_form");
     const second = document.getElementById("clone_to");
 
@@ -371,7 +372,7 @@ Booking Calendar
 
     function get_week_slots(clone_form, clone_to) {
         $.ajax({
-            url: "{{ url('dashboard/day-clone') }}",
+            url: "<?php echo e(url('dashboard/day-clone')); ?>",
             type: 'POST',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
@@ -398,4 +399,5 @@ Booking Calendar
 <script>
     $("#clone_to").select2();
 </script>
-@endsection
+<?php $__env->stopSection(); ?>
+<?php echo $__env->make('layouts.master', \Illuminate\Support\Arr::except(get_defined_vars(), ['__data', '__path']))->render(); ?><?php /**PATH E:\xampp\htdocs\booking-sheduler\resources\views/dashboard/booking_calender/index.blade.php ENDPATH**/ ?>

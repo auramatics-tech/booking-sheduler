@@ -183,9 +183,12 @@ class BookingCalendarController extends Controller
         return response(['status'=>1,'msg'=>'Slot removed successfully.']);
     }
     public function get_teachers_details(Request $request){
+        $asset = asset('uploads/');
         $slots = TeacherSlot::
-                select('teacher_slots.*',DB::raw("(select users.name from `users` where `users`.`id` = teacher_slots.teacher_id) as teacher_name"))
+                select('teacher_slots.*',DB::raw("(select users.name from `users` where `users`.`id` = teacher_slots.teacher_id) as teacher_name"),
+                 DB::raw("(select concat('".$asset."','/',COALESCE(profiles.photo,'defalut.png')) from `profiles` where `profiles`.`user_id` = teacher_slots.teacher_id) as teacher_profile_pic"))
                 ->whereDate('start',$request->start)->where(['time'=>$request->time,'status'=>1])->get();
+                // echo"<pre>";print_r($slots);die;
                 $slots_time = date('M d ,Y',strtotime($request->start)).' '.date('h:i A',strtotime($request->time));
                 return response(['slots'=>$slots,'slots_time'=>$slots_time]);
     }
