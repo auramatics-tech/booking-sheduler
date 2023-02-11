@@ -316,7 +316,7 @@ Booking Calendar
                     </div>\n\
                     <div class="card_detail">\n\
                         <h6>' + v.teacher_name + '</h6>\n\
-                        <a href="#" class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
+                        <a href="javascript:" data-slot="' + v.id + '" data-teacher_id="' + v.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
                         <a href="#" class="btn view_profile" >View Profile</a>\n\
                     </div>\n\
                 </div>'
@@ -327,6 +327,52 @@ Booking Calendar
             }
         });
     })
+    $(document).on('click', '.book_a_class', function() {
+        var slots = $(this).attr('data-slot');
+        var teacher_id = $(this).attr('data-teacher_id');
+        $.ajax({
+            method: "post",
+            data:{
+                slot_id: slots,
+                teacher_id:teacher_id,
+                "_token":"<?php echo e(csrf_token()); ?>",
+            },
+            url: '<?php echo e(route("student.save_student_slots")); ?>',
+            success: function(data) {
+                history.go(0);
+            }
+        })
+	})
+    
+    $(document).on('click', '.booked', function() {
+        var slot_id = $(this).attr('data-slot');
+        $.ajax({
+            method: "post",
+            data:{
+                slot_id: slot_id,
+                "_token":"<?php echo e(csrf_token()); ?>",
+            },
+            url: '<?php echo e(route("student.get_slot_detail")); ?>',
+            success: function(data) {
+               var slot_detail =  '<div class="card border-0">\n\
+                    <div class="mr-4">\n\
+                        <figure class="m-0">\n\
+                            <img src="'+v.teacher_profile_pic+'" alt="">\n\
+                        </figure>\n\
+                    </div>\n\
+                    <div class="card_detail">\n\
+                        <h6>' + v.teacher_name + '</h6>\n\
+                        <a href="javascript:" data-slot="' + v.id + '" data-teacher_id="' + v.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
+                        <a href="#" class="btn view_profile" >View Profile</a>\n\
+                    </div>\n\
+                </div>';
+                $('#slot_time').html(data.slots_time)
+                $('#teachers_detail').html(slot_detail);
+                $('#teachers_detail_modal').modal('show')
+
+            }
+        })
+	})
     <?php endif; ?>
     const first = document.getElementById("clone_form");
     const second = document.getElementById("clone_to");

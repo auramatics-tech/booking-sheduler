@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Lesson;
 use App\Models\User;
 use App\Models\TeacherSlot;
+use App\Models\StudentBookingSlot;
 use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Auth;
@@ -85,12 +86,23 @@ class BookingCalendarController extends Controller
                 $table .= '<td class="side text-center"><input type="checkbox" name="time[]" value="'.$slot.'" id="time" class="mr-3 d-none">'.date('h:i A',strtotime($slot)).'</td>';
                 foreach ($period_date as $date) {
                     $data = TeacherSlot::where( ['start'=> date('Y-m-d',strtotime($date)), 'time'=> $slot])->whereRaw($whereraw)->count();
-                    if($data > 0){
-                        $table .= "<td class='upper border-right on a_slots text-center' data-date='".date('Y-m-d',strtotime($date))."' data-time='".$slot."'>".(( $data > 0 && $s == 1) ?  $data.' '  : '').$t_msg."</td>";
-                    }else{
-                        $table .= "<td class='upper border-right b_slots text-center' data-date='".date('Y-m-d',strtotime($date))."' data-time='".$slot."'></td>";
+                    $student_booking_slot = array();
+                    if(auth()->user()->hasRole('Student') && !empty($data)){
+                        $student_booking_slot = StudentBookingSlot::select('student_booking_slots.*',
+                        DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`id` = student_booking_slots.slot_id) as slot_time"))
+                        ->havingRaw('slot_time = "'.$slot.'"')
+                        ->where(['student_id'=>Auth::user()->id,'status'=>1])
+                        ->first();
                     }
-                    
+                    if(!empty($student_booking_slot)){
+                        $table .= "<td class='upper border-right booked text-center' data-slot='".$student_booking_slot->id."'>Cancel</td>";
+                    }else{
+                        if($data > 0){
+                            $table .= "<td class='upper border-right on a_slots text-center' data-date='".date('Y-m-d',strtotime($date))."' data-time='".$slot."'>".(( $data > 0 && $s == 1) ?  $data.' '  : '').$t_msg."</td>";
+                        }else{
+                            $table .= "<td class='upper border-right b_slots text-center' data-date='".date('Y-m-d',strtotime($date))."' data-time='".$slot."'></td>";
+                        }
+                    }    
                 }
                 $table .= "</tr>";
             }
@@ -198,5 +210,41 @@ class BookingCalendarController extends Controller
         $ids = $request->ids;
         AvailableTime::whereIn('id', explode(",", $ids))->delete();
         return response()->json(['status' => true, 'message' =>  __('messages.Delete')]);
+    }
+
+    public function save_student_slots(Request $request){
+      
+        $this->validate($request, [
+            'slot_id' => 'required',
+            'teacher_id' => 'required',
+        ]);
+        $student_booking_slot = StudentBookingSlot::where('slot_id',$request->slot_id)->where(['student_id'=>Auth::user()->id,'status'=>1,'teacher_id'=>$request->teacher_id])->first();
+        if(empty($student_booking_slot)){
+            $student_booking_slot = new StudentBookingSlot;
+            $student_booking_slot->slot_id = $request->slot_id;
+            $student_booking_slot->teacher_id = $request->teacher_id;
+            $student_booking_slot->student_id = Auth::user()->id;
+            $student_booking_slot->save();
+            $status = 1;
+            $msg = __('messages.success');
+            session()->flash('Add', __('messages.success'));
+        }else{
+            $msg = __('messages.slot already exist.');
+            session()->flash('Add', __('messages.slot already exist'));
+            $status = 0;
+        }
+        return response(['msg'=>$msg,'status'=>$status]);
+    }
+    public function get_slot_detail(Request $request){
+        $asset = asset('uploads/');
+        $slots = StudentBookingSlot::
+                select('student_booking_slots.*',
+                DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.student_id) as student_name"),
+                DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.teacher_id) as teacher_name"),
+                DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id) as teacher_slots_date"),
+                DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id) as teacher_slots_time"))
+                ->where('status' ,1)->first();
+                echo"<pre>";print_r($slots);die;
+                return response(['slots'=>$slots]);
     }
 }
