@@ -201,6 +201,12 @@ Booking Calendar
 <?php $__env->stopSection(); ?>
 <?php $__env->startSection('js'); ?>
 <script type="text/javascript">
+     <?php if(auth()->check() && auth()->user()->hasRole('Teacher')): ?>
+     var get_slots_url = "<?php echo e(route('teacher.get_slots')); ?>";
+     <?php endif; ?>
+     <?php if(auth()->check() && auth()->user()->hasRole('Student')): ?>
+     var get_slots_url = "<?php echo e(route('student.get_slots')); ?>";
+     <?php endif; ?>
     $(document).ready(function() {
         var defaultSlot = "midnight";
         get_slots(defaultSlot)
@@ -215,7 +221,7 @@ Booking Calendar
 
     function get_slots(defaultSlot) {
         $.ajax({
-            url: "<?php echo e(route('teacher.get_slots')); ?>",
+            url: get_slots_url,
             type: 'GET',
             headers: {
                 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
