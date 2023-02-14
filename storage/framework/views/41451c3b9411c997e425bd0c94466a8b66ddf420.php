@@ -177,7 +177,7 @@ Booking Calendar
     </div>
 </div>
 <?php if(auth()->check() && auth()->user()->hasRole('Student')): ?>
-<!-- Modal -->
+<!-- Modal teacher detail -->
 <div class="modal fade" id="teachers_detail_modal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true">
     <div class="modal-dialog modal_flex">
         <div class="modal-content">
@@ -188,6 +188,27 @@ Booking Calendar
                 </button>
             </div>
             <div class="modal-body d-flex flex-column justify-content-center" id="teachers_detail">
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="background: transparent; color: #475569;
+                  border: 1px solid #d9d9d9;">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+<?php if(auth()->check() && auth()->user()->hasRole('Teacher')): ?>
+<div class="modal fade" id="students_detail_modal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal_flex">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tutor-card-head-title" id="slot_time"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body d-flex flex-column justify-content-center" id="students_booking_detail">
 
             </div>
             <div class="modal-footer">
@@ -296,6 +317,109 @@ Booking Calendar
                 }
             });
     })
+
+    $(document).on('click', '.requested', function() {
+        var slot_id = $(this).attr('data-slot');
+        $.ajax({
+            url: "<?php echo e(route('student.get_students_details')); ?>",
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                'slot_id': slot_id
+            },
+            success: function(data) {
+              var students_details = '';
+                $.each(data.students_slot, function(k, v) {
+                    students_details +='<div class="card border-0">\n\
+                    <div class="mr-4">\n\
+                        <figure class="m-0">\n\
+                            <img src="'+v.student_profile_pic+'" alt="">\n\
+                        </figure>\n\
+                    </div>\n\
+                    <div class="card_detail">\n\
+                        <h6>' + v.student_name + '</h6>\n\
+                        <a href="javascript:" data-slot="' + v.slot_id + '"  data-student_slot="' + v.id + '" class="btn btn-success w-100 accept_student ">Accept</a>\n\
+                        <a href="javascript:" data-slot="' + v.slot_id + '"  data-student_slot="' + v.id + '" class="btn btn-danger w-100 reject_by_teacher" >Reject</a>\n\
+                    </div>\n\
+                </div>'
+            })
+                $('#slot_time').html(data.slots_time)
+                $('#students_booking_detail').html(students_details);
+                $('#students_detail_modal').modal('show')
+            }
+        });
+    })
+
+    $(document).on('click', '.accept_student', function() {
+        var student_slot = $(this).attr('data-student_slot');
+        var slot_id = $(this).attr('data-slot');
+        $.ajax({
+            method: "post",
+            data:{
+                student_slot: student_slot,
+                slot_id: slot_id,
+                "_token":"<?php echo e(csrf_token()); ?>",
+            },
+            url: '<?php echo e(route("student.accept_student_slot")); ?>',
+            success: function(data) {
+                history.go(0);
+            }
+        })
+	})
+
+    $(document).on('click', '.reject_by_teacher', function() {
+        var student_slot = $(this).attr('data-student_slot');
+        var slot_id = $(this).attr('data-slot');
+        $.ajax({
+            method: "post",
+            data:{
+                student_slot: student_slot,
+                slot_id: slot_id,
+                "_token":"<?php echo e(csrf_token()); ?>",
+            },
+            url: '<?php echo e(route("student.reject_student_slot")); ?>',
+            success: function(data) {
+                history.go(0);
+            }
+        })
+	})
+
+    $(document).on('click', '.accepted', function() {
+        var slot_id = $(this).attr('data-slot');
+        $.ajax({
+            url: "<?php echo e(route('student.get_booked_teacher_detail')); ?>",
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                'slot_id': slot_id,
+            },
+            success: function(data) {
+                var students_details = '';
+                if(data.booked_student_detail){
+;                        students_details += '<div class="card border-0">\n\
+                        <div class="mr-4">\n\
+                            <figure class="m-0">\n\
+                                <img src="'+data.booked_student_detail.student_profile_pic+'" alt="">\n\
+                            </figure>\n\
+                        </div>\n\
+                        <div class="card_detail">\n\
+                            <h6>' + data.booked_student_detail.student_name + '</h6>\n\
+                            <span class="btn btn-success w-100">Booked</span>\n\
+                        </div>\n\
+                    </div>';
+                }else{
+                    students_details += '<span class="text-danger">Slot not available or booked by someone.</span>';
+                }
+                $('#slot_time').html(data.slots_time)
+                $('#students_booking_detail').html(students_details);
+                $('#students_detail_modal').modal('show')
+            }
+        });
+    })
     <?php endif; ?>
     <?php if(auth()->check() && auth()->user()->hasRole('Student')): ?>
     $(document).on('click', '.a_slots', function() {
@@ -313,20 +437,25 @@ Booking Calendar
             },
             success: function(data) {
                 var teacher_details = '';
-                $.each(data.slots, function(k, v) {
-                    teacher_details += '<div class="card border-0">\n\
-                    <div class="mr-4">\n\
-                        <figure class="m-0">\n\
-                            <img src="'+v.teacher_profile_pic+'" alt="">\n\
-                        </figure>\n\
-                    </div>\n\
-                    <div class="card_detail">\n\
-                        <h6>' + v.teacher_name + '</h6>\n\
-                        <a href="javascript:" data-slot="' + v.id + '" data-teacher_id="' + v.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
-                        <a href="#" class="btn view_profile" >View Profile</a>\n\
-                    </div>\n\
-                </div>'
-                })
+                if(data.slots.length){
+                        $.each(data.slots, function(k, v) {
+                        teacher_details += '<div class="card border-0">\n\
+                        <div class="mr-4">\n\
+                            <figure class="m-0">\n\
+                                <img src="'+v.teacher_profile_pic+'" alt="">\n\
+                            </figure>\n\
+                        </div>\n\
+                        <div class="card_detail">\n\
+                            <h6>' + v.teacher_name + '</h6>\n\
+                            <a href="javascript:" data-slot="' + v.id + '" data-teacher_id="' + v.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
+                            <a href="#" class="btn view_profile" >View Profile</a>\n\
+                        </div>\n\
+                    </div>'
+                    })
+                }else{
+                    teacher_details += '<span class="text-danger">Slot not available or booked by someone.</span>';
+                }
+               
                 $('#slot_time').html(data.slots_time)
                 $('#teachers_detail').html(teacher_details);
                 $('#teachers_detail_modal').modal('show')
@@ -349,33 +478,57 @@ Booking Calendar
             }
         })
 	})
-    
-    $(document).on('click', '.booked', function() {
+    // pre code
+
+    $(document).on('click', '.accepted', function() {
         var slot_id = $(this).attr('data-slot');
+        $.ajax({
+            url: "<?php echo e(route('student.get_booked_teacher_detail')); ?>",
+            type: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+            },
+            data: {
+                'slot_id': slot_id,
+            },
+            success: function(data) {
+                var teacher_details = '';
+                if(data.booked_teacher_detail){
+;                        teacher_details += '<div class="card border-0">\n\
+                        <div class="mr-4">\n\
+                            <figure class="m-0">\n\
+                                <img src="'+data.booked_teacher_detail.teacher_profile_pic+'" alt="">\n\
+                            </figure>\n\
+                        </div>\n\
+                        <div class="card_detail">\n\
+                            <h6>' + data.booked_teacher_detail.teacher_name + '</h6>\n\
+                            <iframe src="<?php echo e(url('student.get_slots')); ?>">Reschedule</iframe>\n\
+                            <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-student_id="' + data.booked_teacher_detail.student_id + '"  class="btn btn-danger w-100 cancel_by_student">Cancel</a>\n\
+                        </div>\n\
+                    </div>';
+                }else{
+                    teacher_details += '<span class="text-danger">Slot not available or booked by someone.</span>';
+                }
+                $('#slot_time').html(data.slots_time)
+                $('#teachers_detail').html(teacher_details);
+                $('#teachers_detail_modal').modal('show')
+            }
+        });
+    })
+
+    $(document).on('click', '.cancel_by_student', function() {
+        var slot_id = $(this).attr('data-slot');
+        var student_id = $(this).attr('data-student_id');
         $.ajax({
             method: "post",
             data:{
                 slot_id: slot_id,
+                student_id: student_id,
                 "_token":"<?php echo e(csrf_token()); ?>",
             },
-            url: '<?php echo e(route("student.get_slot_detail")); ?>',
+            url: '<?php echo e(route("student.cancel_slot_by_student")); ?>',
             success: function(data) {
-               var slot_detail =  '<div class="card border-0">\n\
-                    <div class="mr-4">\n\
-                        <figure class="m-0">\n\
-                            <img src="'+v.teacher_profile_pic+'" alt="">\n\
-                        </figure>\n\
-                    </div>\n\
-                    <div class="card_detail">\n\
-                        <h6>' + v.teacher_name + '</h6>\n\
-                        <a href="javascript:" data-slot="' + v.id + '" data-teacher_id="' + v.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
-                        <a href="#" class="btn view_profile" >View Profile</a>\n\
-                    </div>\n\
-                </div>';
-                $('#slot_time').html(data.slots_time)
-                $('#teachers_detail').html(slot_detail);
-                $('#teachers_detail_modal').modal('show')
-
+                history.go(0);
             }
         })
 	})

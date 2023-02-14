@@ -13,6 +13,7 @@ use Carbon\Carbon;
 use Carbon\CarbonPeriod;
 use Auth;
 use DB;
+use Mail;
 
 class BookingCalendarController extends Controller
 {
@@ -81,7 +82,7 @@ class BookingCalendarController extends Controller
                     if (count($data) > 0) {
                         $check_booking_status = $this->check_my_slot_in_student_booking($data);
                         if($check_booking_status['status'] == 1){
-                            $table .= "<td class='upper border-right on bg-warning text-center' data-slot='".$check_booking_status['id']."'>".$check_booking_status['msg']."</td>";
+                            $table .= "<td class='upper border-right ".$check_booking_status['class']." on bg-".$check_booking_status['color']." text-center' data-slot='".$check_booking_status['id']."'>".$check_booking_status['msg']."</td>";
                         }else{
                             $table .= "<td class='upper border-right on a_slots text-center' data-date='" . date('Y-m-d', strtotime($date)) . "' data-time='" . $slot . "'>A</td>";
                         }
@@ -135,7 +136,7 @@ class BookingCalendarController extends Controller
                     if (count($data) > 0) {
                         $student_booking_slot = $this->check_student_slot_status($data);
                         if ($student_booking_slot['status'] == 1) {
-                            $table .= "<td class='upper border-right bg-".$student_booking_slot['color']." booked text-center' data-slot='" . $student_booking_slot['id'] . "'>".$student_booking_slot['msg']."</td>";
+                            $table .= "<td class='upper border-right bg-".$student_booking_slot['color']." ".$student_booking_slot['class']." text-center' data-slot='" . $student_booking_slot['id'] . "'>".$student_booking_slot['msg']."</td>";
                         } else {
                             $table .= "<td class='upper border-right on a_slots text-center' data-date='" . date('Y-m-d', strtotime($date)) . "' data-time='" . $slot . "'>" .count( $data) . "Teachers</td>";
                         }
@@ -152,20 +153,24 @@ class BookingCalendarController extends Controller
     public function check_my_slot_in_student_booking($data){
         $student_booking_slot = StudentBookingSlot::
         where(['teacher_id' => Auth::user()->id])
-        ->whereIn('slot_id', $data)
+        ->whereIn('slot_id', $data)->whereIn('status' ,[1,3])
         ->orderby('id', 'desc')
         ->get();
+        // echo "<pre>";print_r($student_booking_slot);
         if(count($student_booking_slot)){
             if ($student_booking_slot->contains('status', 1)){
                 $status = 'Booked';
+                $class = 'accepted';
+                $color = 'success';
             }else{
                 $status = $student_booking_slot->count().' Requested';
+                $class='requested';
+                $color = 'warning';
             }
-            $data_result = ['status'=>1,'msg'=>$status,'id'=>$data[0]];
+            $data_result = ['status'=>1,'msg'=>$status,'id'=>$data[0],'class'=>$class,'color'=>$color];
         }else{
             $data_result = ['status'=>0,'msg'=>''];
         }
-        // echo "<pre>";print_r($data_result);
         return $data_result;
     }
     public function check_student_slot_status($data){
@@ -178,20 +183,25 @@ class BookingCalendarController extends Controller
             if($student_booking_slot->status == 1){
                 $msg = 'Booked';
                 $color = 'success';
+                $class = 'accepted';
             }elseif($student_booking_slot->status == 2){
                 $msg = 'Rejected';
                 $color = 'danger';
+                $class = 'rejected';
             }elseif($student_booking_slot->status == 3){
                 $msg = 'Requested';
                 $color = 'warning';
+                $class = 'requested';
             }elseif($student_booking_slot->status == 4){
                 $msg = 'Canceled';
                 $color = 'danger';
+                $class = 'canceled';
             }elseif($student_booking_slot->status == 5){
                 $msg = 'Rescheduled';
                 $color = 'primary';
+                $class = 'rescheduled';
             }
-            $data = ['id'=>'','status'=>1,'msg'=>$msg,'color'=>$color];
+            $data = ['id'=>$student_booking_slot->id,'status'=>1,'msg'=>$msg,'color'=>$color,'class'=>$class];
         }else{
             $data = ['id'=>'','status'=>0,'msg'=>'','color'=>''];
         }
@@ -320,7 +330,7 @@ class BookingCalendarController extends Controller
             $student_booking_slot->student_id = Auth::user()->id;
             $student_booking_slot->save();
             $status = 1;
-            $update_teacher_slot = TeacherSlot::where('id', $request->slot_id)->update(['status' => 2]);
+            // $update_teacher_slot = TeacherSlot::where('id', $request->slot_id)->update(['status' => 2]);
             $msg = __('messages.success');
             session()->flash('Add', __('messages.success'));
         } else {
@@ -330,20 +340,79 @@ class BookingCalendarController extends Controller
         }
         return response(['msg' => $msg, 'status' => $status]);
     }
-    public function get_slot_detail(Request $request)
+    public function get_students_details(Request $request)
     {
         $asset = asset('uploads/');
-        $slots = StudentBookingSlot::select(
+        $students_slot = StudentBookingSlot::select(
                 'student_booking_slots.*',
                 DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.student_id) as student_name"),
                 DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.teacher_id) as teacher_name"),
-                DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id) as teacher_slots_date"),
-                DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id) as teacher_slots_time")
+                DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id and `teacher_slots`.`id` = student_booking_slots.slot_id) as teacher_slots_date"),
+                DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id and `teacher_slots`.`id` = student_booking_slots.slot_id) as teacher_slots_time"),
+                DB::raw("(select concat('" . $asset . "','/',COALESCE(profiles.photo,'defalut.png')) from `profiles` where `profiles`.`user_id` = student_booking_slots.student_id) as student_profile_pic")
             )
-            ->where('status', 1)->first();
-        echo "<pre>";
-        print_r($slots);
-        die;
-        return response(['slots' => $slots]);
+            ->where('slot_id', $request->slot_id)->whereIn('status',[1,3])->get();
+            $slots_time = date('M d ,Y', strtotime($students_slot[0]->teacher_slots_date)) . ' ' . date('h:i A', strtotime($students_slot[0]->teacher_slots_time));
+        return response(['students_slot' => $students_slot ,  'slots_time' => $slots_time]);
     }
+
+    public function accept_student_slot(Request $request){
+        $update_teacher_slot = TeacherSlot::where('id', $request->slot_id)->update(['status' => 2]);
+        $students_slot = StudentBookingSlot::where('slot_id', $request->slot_id)->update(['status' =>2]);
+        $students_slot_approved = StudentBookingSlot::where('id', $request->student_slot)->update(['status' => 1]);
+        $msg = __('messages.success');
+        session()->flash('Add', __('messages.success'));
+        return response(['msg' => $msg, ]);
+    }
+
+    public function reject_student_slot(Request $request){
+        $students_slot_approved = StudentBookingSlot::where('id', $request->student_slot)->update(['status' => 2]);
+        $msg = __('messages.success');
+        session()->flash('Add', __('messages.success'));
+        return response(['msg' => $msg,]);
+
+    }
+
+
+    public function get_booked_teacher_detail(Request $request ){
+       if(auth()->user()->hasRole('Student')) {
+        $asset = asset('uploads/');
+        $booked_teacher_detail = StudentBookingSlot::select(
+                'student_booking_slots.*',
+                DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.teacher_id) as teacher_name"),
+                DB::raw("(select concat('" . $asset . "','/',COALESCE(profiles.photo,'defalut.png')) from `profiles` where `profiles`.`user_id` = student_booking_slots.teacher_id) as teacher_profile_pic"),
+                DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id and `teacher_slots`.`id` = student_booking_slots.slot_id) as teacher_slots_date"),
+                DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id and `teacher_slots`.`id` = student_booking_slots.slot_id) as teacher_slots_time")
+            )
+            ->where('id', $request->slot_id)->first();
+            $slots_time = date('M d ,Y', strtotime($booked_teacher_detail->teacher_slots_date)) . ' ' . date('h:i A', strtotime($booked_teacher_detail->teacher_slots_time));
+           return response(['booked_teacher_detail' => $booked_teacher_detail, 'slots_time' => $slots_time]);
+        }
+            $asset = asset('uploads/');
+             $booked_student_detail = StudentBookingSlot::select(
+                    'student_booking_slots.*',
+                    DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.student_id) as student_name"),
+                    DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id and `teacher_slots`.`id` = student_booking_slots.slot_id) as teacher_slots_date"),
+                    DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`teacher_id` = student_booking_slots.teacher_id and `teacher_slots`.`id` = student_booking_slots.slot_id) as teacher_slots_time"),
+                    DB::raw("(select concat('" . $asset . "','/',COALESCE(profiles.photo,'defalut.png')) from `profiles` where `profiles`.`user_id` = student_booking_slots.student_id) as student_profile_pic")
+                )
+                ->where('slot_id', $request->slot_id)->where('status',1)->first();
+                // echo "<pre>";print_r($booked_student_detail);die;
+                $slots_time = date('M d ,Y', strtotime($booked_student_detail->teacher_slots_date)) . ' ' . date('h:i A', strtotime($booked_student_detail->teacher_slots_time));
+            return response(['booked_student_detail' => $booked_student_detail, 'slots_time' => $slots_time]);
+
+    }
+
+    public function cancel_slot_by_student(Request $request){
+        // echo"<pre>";print_r($request->all());die;
+        $cancel_by_student = StudentBookingSlot::where('id', $request->slot_id)->where('student_id', $request->student_id)->first();
+        $cancel_by_student->status = 4 ;
+        $cancel_by_student->save();
+        $update_teacher_slots = TeacherSlot::where(['id'=>$cancel_by_student->slot_id,'teacher_id'=>$cancel_by_student->teacher_id])->update(['status' => 1]);
+        $msg = __('messages.success');
+        session()->flash('Add', __('messages.success'));
+        return response(['msg' => $msg,]);
+
+    }
+    
 }

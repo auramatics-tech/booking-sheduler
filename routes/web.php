@@ -113,10 +113,15 @@ Route::group(
                 Route::get('teacher-slots', 'BookingCalendarController@teachers_side_getSlots')->name('teacher.get_slots')->middleware('AdminApprove');
                 Route::get('student-slots', 'BookingCalendarController@student_side_getSlots')->name('student.get_slots')->middleware('AdminApprove');
                 Route::post('save-slots', 'BookingCalendarController@store')->name('teacher.save_slots')->middleware('AdminApprove');
+                Route::post('accept-student-slot', 'BookingCalendarController@accept_student_slot')->name('student.accept_student_slot')->middleware('AdminApprove');
+                Route::post('reject-student-slot', 'BookingCalendarController@reject_student_slot')->name('student.reject_student_slot')->middleware('AdminApprove');
                 Route::post('cancel-slots', 'BookingCalendarController@cancel_slots')->name('teacher.cancel_slots')->middleware('AdminApprove');
                 Route::post('save-student-slots', 'BookingCalendarController@save_student_slots')->name('student.save_student_slots')->middleware('AdminApprove');
                 Route::post('get-teachers-details', 'BookingCalendarController@get_teachers_details')->name('student.get_teachers_details')->middleware('AdminApprove');
+                Route::post('get-students-details', 'BookingCalendarController@get_students_details')->name('student.get_students_details')->middleware('AdminApprove');
                 Route::post('get-slot-details', 'BookingCalendarController@get_slot_detail')->name('student.get_slot_detail')->middleware('AdminApprove');
+                Route::post('get-booked-teacher-detail', 'BookingCalendarController@get_booked_teacher_detail')->name('student.get_booked_teacher_detail')->middleware('AdminApprove');
+                Route::post('cancel-slot-by-student', 'BookingCalendarController@cancel_slot_by_student')->name('student.cancel_slot_by_student')->middleware('AdminApprove');
                 Route::post('day-clone', 'BookingCalendarController@slotClone')->middleware('AdminApprove');
 
                 Route::resource('lessons', 'LessonController')->middleware('AdminApprove');
