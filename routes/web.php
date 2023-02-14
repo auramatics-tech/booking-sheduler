@@ -122,6 +122,9 @@ Route::group(
                 Route::post('get-slot-details', 'BookingCalendarController@get_slot_detail')->name('student.get_slot_detail')->middleware('AdminApprove');
                 Route::post('get-booked-teacher-detail', 'BookingCalendarController@get_booked_teacher_detail')->name('student.get_booked_teacher_detail')->middleware('AdminApprove');
                 Route::post('cancel-slot-by-student', 'BookingCalendarController@cancel_slot_by_student')->name('student.cancel_slot_by_student')->middleware('AdminApprove');
+                Route::post('get-teachers-reschedule', 'BookingCalendarController@get_teachers_reschedule')->name('student.get_teachers_reschedule')->middleware('AdminApprove');
+                Route::post('get-teachers-reschedule-time', 'BookingCalendarController@get_teachers_reschedule_time')->name('student.get_teachers_reschedule_time')->middleware('AdminApprove');
+                Route::post('reschedule', 'BookingCalendarController@reschedule')->name('student.reschedule')->middleware('AdminApprove');
                 Route::post('day-clone', 'BookingCalendarController@slotClone')->middleware('AdminApprove');
 
                 Route::resource('lessons', 'LessonController')->middleware('AdminApprove');

@@ -83,7 +83,7 @@ Booking Calendar
                             <div class="dropdown-menu">
                                 <form action="">
                                     <div class="form-group">
-                                        <label for="">Day Clone From:</label>
+                                        <label for="">Reschedule</label>
                                         <select name="" id="clone_form" class="w-100">
                                             <option value="">Select Day</option>
                                             @foreach($period as $date)
@@ -163,7 +163,7 @@ Booking Calendar
                                 <div class="cal week-scroll">
                                     <div class="cal-container">
                                         <span class="text-success" id="slot_msg"></span>
-                                        <table class="timeslot-table" cellpadding="0" id="timeslot-table">
+                                        <table class="timeslot-table slots_main_table" cellpadding="0" id="timeslot-table">
                                         </table>
                                     </div>
                                 </div>
@@ -196,6 +196,30 @@ Booking Calendar
         </div>
     </div>
 </div>
+{--<div class="modal fade" id="reschedule_class_modal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title tutor-card-head-title" id="slot_time"></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body d-flex flex-column justify-content-center " id="reschedule_booking">
+            <table class="timeslot-table reschedule_booking" cellpadding="0" id="timeslot-table">
+            </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal" style="background: transparent; color: #475569;
+                  border: 1px solid #d9d9d9;">Close</button>
+            </div>
+        </div>
+    </div>
+</div> --}}
+<form id="reschedule_date_form" action="" method="post">
+		@csrf <input type="date" name="reschedule_date_form" id="reshedule_date" style="display: none;">
+		</form>
+
 @endrole
 @role('Teacher')
 <div class="modal fade" id="students_detail_modal" tabindex="-1" aria-labelledby="dayModalLabel" aria-hidden="true">
@@ -229,17 +253,17 @@ Booking Calendar
      @endrole
     $(document).ready(function() {
         var defaultSlot = "midnight";
-        get_slots(defaultSlot)
+        get_slots(defaultSlot,'slots_main_table')
 
         $('.get_slots').on('click', function() {
             $(".get_slots").attr("aria-selected", "false");
             $(this).attr("aria-selected", "true");
             var defaultSlot = $(this).attr('data-value');
-            get_slots(defaultSlot)
+            get_slots(defaultSlot,'slots_main_table')
         });
     });
 
-    function get_slots(defaultSlot) {
+    function get_slots(defaultSlot,append_id) {
         $.ajax({
             url: get_slots_url,
             type: 'GET',
@@ -248,8 +272,7 @@ Booking Calendar
             },
             data: 'slot=' + defaultSlot,
             success: function(data) {
-                $(".timeslot-table").html(data);
-                $(".timeslot-table").html(data);
+                $("."+append_id).html(data);
             }
         });
     }
@@ -501,8 +524,10 @@ Booking Calendar
                         </div>\n\
                         <div class="card_detail">\n\
                             <h6>' + data.booked_teacher_detail.teacher_name + '</h6>\n\
-                            <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-teacher_id="' + data.booked_teacher_detail.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Reschedule</a>\n\
-                            <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-student_id="' + data.booked_teacher_detail.student_id + '"  class="btn btn-danger w-100 cancel_by_student">Cancel</a>\n\
+                            <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-teacher_id="' + data.booked_teacher_detail.teacher_id + '"  class="btn btn-primary w-100 reschedule_class teacher_detail">Reschedule</a>\n\
+                            <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-student_id="' + data.booked_teacher_detail.student_id + '"  class="btn btn-danger w-100 cancel_by_student teacher_detail">Cancel Booking</a>\n\
+                        </div>\n\
+                        <div id="reschedule_sec">\n\
                         </div>\n\
                     </div>';
                 }else{
@@ -531,6 +556,65 @@ Booking Calendar
             }
         })
 	})
+    
+    $(document).on('click', '.reschedule_class', function() {
+        var slot_id = $(this).attr('data-slot')
+        var date_option =  '<form action="{{route("student.reschedule")}}" method="post"><input type="hidden" name="old_slot_id" value="'+slot_id+'" /><input type="hidden" name="_token" value="{{csrf_token()}}" /><input type="hidden" name="status"  value="5"/><input type="hidden" name="student_id" value="{{Auth::user()->id}}"/><div class="form-group">\n\
+                                        <label for="">Day Clone From:</label>\n\
+                                        <select name="res_date" id="select_res_date" class="w-100">\n\
+                                         <option value="">Select Day</option>';
+                                            @foreach($period as $date)
+                                            date_option += '<option value="{{ date('Y-m-d',strtotime($date))}}">{{ date('l', strtotime($date))}}</option>'
+                                            @endforeach
+                            date_option += '</select></div><div class="form-group" id="teacher_sec"></div><div class="form-group" id="time_sec"></div></form>';
+            $('.teacher_detail').hide()
+            $('#reschedule_sec').html(date_option)
+
+	})
+
+    $(document).on('change', '#select_res_date', function() {
+        var date = $(this).val();
+         $.ajax({
+            method:"post",
+            data:{
+                date : date,
+                "_token":"{{csrf_token()}}",
+            },
+            url:'{{route("student.get_teachers_reschedule")}}',
+            success: function(data) {
+                var teachers = '<select class="form-control" id="reschedule_teach_time" name="teacher_id"><option>Select teacher</option>';
+                $.each(data.get_teachers, function(k, v) {
+                    teachers += '<option value="'+v.teacher_id+'">'+v.teacher_name+'</option>';
+                })
+                teachers += '</select>';
+                $('#teacher_sec').html(teachers);
+            }
+        })
+
+    })
+
+    $(document).on('change', '#reschedule_teach_time', function() {
+        var teacher_id = $(this).val();
+        var date = $('#select_res_date').val();
+         $.ajax({
+            method:"post",
+            data:{
+                teacher_id : teacher_id,
+                date : date,
+                "_token":"{{csrf_token()}}",
+            },
+            url:'{{route("student.get_teachers_reschedule_time")}}',
+            success: function(data) {
+                var teachers = '<select class="form-control" name="time"><option>Select time</option>';
+                $.each(data.get_time, function(k, v) {
+                    teachers += '<option value="'+v.time+'">'+v.time+'</option>';
+                })
+                teachers += '</select><button type="submit" class="btn btn-primary">Reschedule</button>';
+                $('#time_sec').html(teachers);
+            }
+        })
+
+    })
     @endrole
     const first = document.getElementById("clone_form");
     const second = document.getElementById("clone_to");

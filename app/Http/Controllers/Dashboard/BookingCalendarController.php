@@ -414,5 +414,38 @@ class BookingCalendarController extends Controller
         return response(['msg' => $msg,]);
 
     }
+
+    public function get_teachers_reschedule(Request $request){
+        $get_teachers = TeacherSlot::select(
+            'teacher_slots.*',
+            DB::raw("(select users.name from `users` where `users`.`id` = teacher_slots.teacher_id) as teacher_name"))
+            ->where('status' ,1)->whereDate('start' , $request->date)->groupBy('teacher_id')->get();
+        //   echo"<pre>";print_r($get_teachers);die;
+        return response(['get_teachers' => $get_teachers]);
+
+    }
+
+    public function get_teachers_reschedule_time(Request $request){
+        $get_time = TeacherSlot :: where('status',1)->where('teacher_id' ,$request->teacher_id)->whereDate('start' , $request->date)->get();
+        // echo"<pre>";print_r($get_time);die;
+        return response(['get_time' => $get_time]);
+
+    }
+
+    public function reschedule(Request $request){
+        // echo"<pre>";print_r($request->all());die;
+        $update_old_slot = StudentBookingSlot::where('id',$request->old_slot_id)->update(['status'=>5]);
+        $new_slot = TeacherSlot::where(['teacher_id'=>$request->teacher_id,'start'=>$request->res_date,'time'=>$request->time])->first();
+        $reschedule_for_student = new StudentBookingSlot();
+        $reschedule_for_student->student_id = $request->student_id;
+        $reschedule_for_student->teacher_id = $request->teacher_id;
+        $reschedule_for_student->slot_id =  $new_slot->id;
+        $reschedule_for_student->status = 3;
+        $reschedule_for_student->save();
+        session()->flash('Add', __('messages.success'));
+        return response('success');
+
+    }
+
     
 }
