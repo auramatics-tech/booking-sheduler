@@ -360,6 +360,15 @@ class BookingCalendarController extends Controller
         $update_teacher_slot = TeacherSlot::where('id', $request->slot_id)->update(['status' => 2]);
         $students_slot = StudentBookingSlot::where('slot_id', $request->slot_id)->update(['status' =>2]);
         $students_slot_approved = StudentBookingSlot::where('id', $request->student_slot)->update(['status' => 1]);
+        $student_email = StudentBookingSlot::select(
+            'student_booking_slots.*',
+            DB::raw("(select users.email from `users` where `users`.`id` = student_booking_slots.student_id) as student_email"))->first();
+            // echo "<pre>";print_r($student_email->student_email);die;
+            Mail::send('front.book_class_mail', compact('student_email'), function ($m) use ($student_email) {
+                $m->to($student_email->student_email)
+                    ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))
+                    ->subject('Book Class Accepted Successfully');
+            });
         $msg = __('messages.success');
         session()->flash('Add', __('messages.success'));
         return response(['msg' => $msg, ]);

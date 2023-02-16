@@ -42,6 +42,13 @@ Booking Calendar
     .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
         background: transparent !important;
     }
+    .new_css{
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: center;
+        align-items: center;
+        margin-top: 20px;
+    }
 </style>
 <link href="<?php echo e(URL::asset('assets/css/booking.css')); ?>" rel="stylesheet" />
 <link href="//cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css?v=1675835876" rel="stylesheet" />
@@ -355,13 +362,13 @@ Booking Calendar
             success: function(data) {
               var students_details = '';
                 $.each(data.students_slot, function(k, v) {
-                    students_details +='<div class="card border-0">\n\
+                    students_details +='<div class="card border-0 new_css">\n\
                     <div class="mr-4">\n\
-                        <figure class="m-0">\n\
+                        <figure class="m-0 set_teacher_img">\n\
                             <img src="'+v.student_profile_pic+'" alt="">\n\
                         </figure>\n\
                     </div>\n\
-                    <div class="card_detail">\n\
+                    <div class="card_detail w-100">\n\
                         <h6>' + v.student_name + '</h6>\n\
                         <a href="javascript:" data-slot="' + v.slot_id + '"  data-student_slot="' + v.id + '" class="btn btn-success w-100 accept_student ">Accept</a>\n\
                         <a href="javascript:" data-slot="' + v.slot_id + '"  data-student_slot="' + v.id + '" class="btn btn-danger w-100 reject_by_teacher" >Reject</a>\n\
@@ -423,13 +430,13 @@ Booking Calendar
             success: function(data) {
                 var students_details = '';
                 if(data.booked_student_detail){
-;                        students_details += '<div class="card border-0">\n\
+;                        students_details += '<div class="card border-0 new_css">\n\
                         <div class="mr-4">\n\
                             <figure class="m-0">\n\
                                 <img src="'+data.booked_student_detail.student_profile_pic+'" alt="">\n\
                             </figure>\n\
                         </div>\n\
-                        <div class="card_detail">\n\
+                        <div class="card_detail w-100">\n\
                             <h6>' + data.booked_student_detail.student_name + '</h6>\n\
                             <span class="btn btn-success w-100">Booked</span>\n\
                         </div>\n\
@@ -468,7 +475,7 @@ Booking Calendar
                                 <img src="'+v.teacher_profile_pic+'" alt="">\n\
                             </figure>\n\
                         </div>\n\
-                        <div class="card_detail">\n\
+                        <div class="card_detail w-100">\n\
                             <h6>' + v.teacher_name + '</h6>\n\
                             <a href="javascript:" data-slot="' + v.id + '" data-teacher_id="' + v.teacher_id + '"  class="btn btn-primary w-100 book_a_class">Book a class</a>\n\
                             <a href="#" class="btn view_profile" >View Profile</a>\n\
@@ -517,7 +524,7 @@ Booking Calendar
             success: function(data) {
                 var teacher_details = '';
                 if(data.booked_teacher_detail){
-;                        teacher_details += '<div class="card border-0">\n\
+                        teacher_details += '<div class="card border-0">\n\
                         <div class="mr-4">\n\
                             <figure class="m-0">\n\
                                 <img src="'+data.booked_teacher_detail.teacher_profile_pic+'" alt="">\n\
@@ -525,7 +532,7 @@ Booking Calendar
                         </div>\n\
                         <div class="card_detail">\n\
                             <h6>' + data.booked_teacher_detail.teacher_name + '</h6>\n\
-                            <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-teacher_id="' + data.booked_teacher_detail.teacher_id + '"  class="btn btn-primary w-100 reschedule_class teacher_detail">Reschedule</a>\n\
+                            <a style= "margin-top: 10px;margin-bottom: 10px;" href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-teacher_id="' + data.booked_teacher_detail.teacher_id + '"  class="btn btn-primary w-100 reschedule_class teacher_detail">Reschedule</a>\n\
                             <a href="javascript:" data-slot="' + data.booked_teacher_detail.id + '" data-student_id="' + data.booked_teacher_detail.student_id + '"  class="btn btn-danger w-100 cancel_by_student teacher_detail">Cancel Booking</a>\n\
                         </div>\n\
                         <div id="reschedule_sec">\n\

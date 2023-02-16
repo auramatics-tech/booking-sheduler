@@ -1,12 +1,12 @@
 <!DOCTYPE html>
-    <html lang="en-US">
-      <head>
-        <meta charset="utf-8">
-      </head>
-      <body>
-        <div>
-    <hr>
-    <h2>Thank you for booking. </h2>
-    </div>
-      </body>
-    </html><?php /**PATH E:\xampp\htdocs\booking-sheduler\resources\views/front/book_class_mail.blade.php ENDPATH**/ ?>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Document</title>
+</head>
+<body>
+  <h1>Hello</h1>
+</body>
+</html><?php /**PATH E:\xampp\htdocs\booking-sheduler\resources\views/front/book_class_mail.blade.php ENDPATH**/ ?>
