@@ -362,8 +362,12 @@ class BookingCalendarController extends Controller
         $students_slot_approved = StudentBookingSlot::where('id', $request->student_slot)->update(['status' => 1]);
         $student_email = StudentBookingSlot::select(
             'student_booking_slots.*',
-            DB::raw("(select users.email from `users` where `users`.`id` = student_booking_slots.student_id) as student_email"))->first();
-            // echo "<pre>";print_r($student_email->student_email);die;
+            DB::raw("(select users.email from `users` where `users`.`id` = student_booking_slots.student_id) as student_email"),
+            DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`id` = student_booking_slots.slot_id) as start_date"),
+            DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`id` = student_booking_slots.slot_id) as slot_time"),
+            DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.teacher_id) as teacher_name"),
+            DB::raw("(select users.name from `users` where `users`.`id` = student_booking_slots.student_id) as student_name"))->where('id', $request->student_slot)->first();
+            // echo "<pre>";print_r($student_email);die;
             Mail::send('front.book_class_mail', compact('student_email'), function ($m) use ($student_email) {
                 $m->to($student_email->student_email)
                     ->from(env('MAIL_FROM_ADDRESS'), env('MAIL_FROM_NAME'))

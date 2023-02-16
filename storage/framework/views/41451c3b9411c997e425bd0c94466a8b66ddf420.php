@@ -617,7 +617,6 @@ Booking Calendar
             url:'<?php echo e(route("student.get_teachers_reschedule_time")); ?>',
             success: function(data) {
                 var teachers = '<select class="form-control" name="time"><option value="">Select time</option>';
-                console.log(data);
                 $.each(data.get_time, function(k, v) {
                     teachers += '<option value="'+v.time+'">'+v.time+'</option>';
                 })
