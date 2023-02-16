@@ -442,6 +442,11 @@ class BookingCalendarController extends Controller
     }
 
     public function reschedule(Request $request){
+        $this->validate($request, [
+            'res_date' => ['required'],
+            'time' => ['required'],
+            'teacher_id' => ['required'],
+            ]);
         // echo"<pre>";print_r($request->all());die;
         $update_old_slot = StudentBookingSlot::where('id',$request->old_slot_id)->update(['status'=>5]);
         $new_slot = TeacherSlot::where(['teacher_id'=>$request->teacher_id,'start'=>$request->res_date,'time'=>$request->time])->first();
@@ -452,7 +457,8 @@ class BookingCalendarController extends Controller
         $reschedule_for_student->status = 3;
         $reschedule_for_student->save();
         session()->flash('Add', __('messages.success'));
-        return response('success');
+        return back()->with('success','success');
+        // return response('success');
 
     }
 

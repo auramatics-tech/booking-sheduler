@@ -82,6 +82,7 @@ Booking Calendar
                     <li><span class="tab-item get_slots" data-value="evening" aria-selected="false">18:00 - 24:00</span></li>
                 </ul>
                 <ul class="mb-0 d-flex align-items-center pr-4">
+                @role('Teacher')
                     <li>
                         <div class="dropdown daydrop_down">
                             <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
@@ -90,7 +91,7 @@ Booking Calendar
                             <div class="dropdown-menu">
                                 <form action="">
                                     <div class="form-group">
-                                        <label for="">Reschedule</label>
+                                        <label for="">Day Clone From</label>
                                         <select name="" id="clone_form" class="w-100">
                                             <option value="">Select Day</option>
                                             @foreach($period as $date)
@@ -139,6 +140,7 @@ Booking Calendar
                                     <button type="button" class="btn btn-secondary btn-sm" id="weekClone">Submit</button>
                                 </form>
                             </div>
+                           
                     </li>
                     <li>
                         <div class="dropdown daydrop_down">
@@ -159,6 +161,7 @@ Booking Calendar
                                     <button type="button" class="btn btn-secondary btn-sm" id="monthClone">Submit</button>
                                 </form>
                             </div>
+                            @endrole
                     </li>
                 </ul>
             </div>
@@ -567,7 +570,7 @@ Booking Calendar
     $(document).on('click', '.reschedule_class', function() {
         var slot_id = $(this).attr('data-slot')
         var date_option =  '<form action="{{route("student.reschedule")}}" method="post"><input type="hidden" name="old_slot_id" value="'+slot_id+'" /><input type="hidden" name="_token" value="{{csrf_token()}}" /><input type="hidden" name="status"  value="5"/><input type="hidden" name="student_id" value="{{Auth::user()->id}}"/><div class="form-group">\n\
-                                        <label for="">Day Clone From:</label>\n\
+                                        <label for="">Reschedule Day:</label>\n\
                                         <select name="res_date" id="select_res_date" class="w-100">\n\
                                          <option value="">Select Day</option>';
                                             @foreach($period as $date)
@@ -589,7 +592,7 @@ Booking Calendar
             },
             url:'{{route("student.get_teachers_reschedule")}}',
             success: function(data) {
-                var teachers = '<select class="form-control" id="reschedule_teach_time" name="teacher_id"><option>Select teacher</option>';
+                var teachers = '<select class="form-control" id="reschedule_teach_time" name="teacher_id"><option value="">Select teacher</option>';
                 $.each(data.get_teachers, function(k, v) {
                     teachers += '<option value="'+v.teacher_id+'">'+v.teacher_name+'</option>';
                 })
@@ -612,11 +615,12 @@ Booking Calendar
             },
             url:'{{route("student.get_teachers_reschedule_time")}}',
             success: function(data) {
-                var teachers = '<select class="form-control" name="time"><option>Select time</option>';
+                var teachers = '<select class="form-control" name="time"><option value="">Select time</option>';
+                console.log(data);
                 $.each(data.get_time, function(k, v) {
                     teachers += '<option value="'+v.time+'">'+v.time+'</option>';
                 })
-                teachers += '</select><button type="submit" class="btn btn-primary">Reschedule</button>';
+                teachers += '</select><button type="submit" style="margin-top: 10px; width: 100%;" class="btn btn-primary">Reschedule</button>';
                 $('#time_sec').html(teachers);
             }
         })
