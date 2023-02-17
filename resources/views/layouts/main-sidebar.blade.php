@@ -279,6 +279,13 @@
                     <i class="fas fa-user"></i>
                     <span class="side-menu__label">{{ __('dash.Profile') }}</span></a>
             </li>
+            @role('Admin')
+            <li class="slide">
+                <a class="side-menu__item" href="{{route('admin_booking_calendar')}}">
+                    <i class="fas fa-calendar-alt"></i><span class="side-menu__label"> Booking Calendar
+                    </span></a>
+            </li>
+             @endrole
             @role('Teacher')
             <li class="slide">
                 <a class="side-menu__item" href="{{ url('/' . ($page = 'dashboard/booking-calendar')) }}">

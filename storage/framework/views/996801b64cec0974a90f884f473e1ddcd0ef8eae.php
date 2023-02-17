@@ -14,7 +14,7 @@
     <p>Slot Date : <?php echo e(isset($student_email->start_date) ?  date('d-m-Y', strtotime($student_email->start_date)) : ''); ?></p>
     <p> Slot Time : <?php echo e(isset($student_email->slot_time) ? date('h:i a ', strtotime($student_email->slot_time)): ''); ?></p>
     <hr>
-    <h2>Thank you for Booking. </h2>
+    <h2><?php echo e($mail_msg); ?></h2>
     </div>
 </body>
 </html><?php /**PATH E:\xampp\htdocs\booking-sheduler\resources\views/front/book_class_mail.blade.php ENDPATH**/ ?>

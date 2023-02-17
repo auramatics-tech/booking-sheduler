@@ -279,6 +279,13 @@
                     <i class="fas fa-user"></i>
                     <span class="side-menu__label"><?php echo e(__('dash.Profile')); ?></span></a>
             </li>
+            <?php if(auth()->check() && auth()->user()->hasRole('Admin')): ?>
+            <li class="slide">
+                <a class="side-menu__item" href="<?php echo e(route('admin_booking_calendar')); ?>">
+                    <i class="fas fa-calendar-alt"></i><span class="side-menu__label"> Booking Calendar
+                    </span></a>
+            </li>
+             <?php endif; ?>
             <?php if(auth()->check() && auth()->user()->hasRole('Teacher')): ?>
             <li class="slide">
                 <a class="side-menu__item" href="<?php echo e(url('/' . ($page = 'dashboard/booking-calendar'))); ?>">
