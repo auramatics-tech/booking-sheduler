@@ -110,6 +110,7 @@ Route::group(
                 Route::post('calender/action', 'AvailableTimeController@action')->name('calendart')->middleware('AdminApprove');
 
                 Route::get('admin-booking-calendar', 'BookingCalendarController@admin_calender')->name('admin_booking_calendar')->middleware('AdminApprove');
+                Route::get('admin-side-slots', 'BookingCalendarController@admin_side_get_slots')->name('admin_side_get_slots')->middleware('AdminApprove');
                 Route::get('booking-calendar', 'BookingCalendarController@index')->name('booking_calendar')->middleware('AdminApprove');
                 Route::get('teacher-slots', 'BookingCalendarController@teachers_side_getSlots')->name('teacher.get_slots')->middleware('AdminApprove');
                 Route::get('student-slots', 'BookingCalendarController@student_side_getSlots')->name('student.get_slots')->middleware('AdminApprove');

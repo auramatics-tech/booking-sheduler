@@ -513,10 +513,10 @@ class BookingCalendarController extends Controller
         $mail_msg = "Rescheduled Requested Successfully";
         $get_old_slot_detail = StudentBookingSlot::select(
             'student_booking_slots.*',
-            DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`id` = $request->old_slot_id) as start_date"),
-            DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`id` = $request->old_slot_id) as slot_time"))->first();
+            DB::raw("(select teacher_slots.start from `teacher_slots` where `teacher_slots`.`id` = `student_booking_slots`.`slot_id` ) as start_date"),
+            DB::raw("(select teacher_slots.time from `teacher_slots` where `teacher_slots`.`id` = `student_booking_slots`.`slot_id`) as slot_time"))->where('id',$request->old_slot_id)->first();
         if($get_old_slot_detail->start_date == date('Y-m-d') && $get_old_slot_detail->slot_time >= date('H:i:s',strtotime(now()."+ 180 Minutes")) ){
-            // echo "<pre>";print_r(date('H:i:s',strtotime(now()."+ 180 Minutes")));die;
+            // echo "<pre>";print_r($get_old_slot_detail);die;
             session()->flash('Add', __("Cann't reschedule, Time over."));
             return back()->with('error', "Cann't reschedule, Time over.");
         }
@@ -561,5 +561,59 @@ class BookingCalendarController extends Controller
     {
         $period = CarbonPeriod::create(Carbon::now(), Carbon::now()->addWeekday(4));
         return view('dashboard.booking_calender.admin_calender', compact('period'));
+    }
+
+    public function admin_side_get_slots(Request $request)
+    {
+
+        $slot = $request->slot;
+
+        if ($slot == "midnight") {
+            $start_times = "00:00:00";
+            $end_times = "05:30:00";
+        } elseif ($slot == "morning") {
+            $start_times = "06:00:00";
+            $end_times = "11:30:00";
+        } elseif ($slot == "afternoon") {
+            $start_times = "12:00:00";
+            $end_times = "17:30:00";
+        } elseif ($slot == "evening") {
+            $start_times = "18:00:00";
+            $end_times = "23:30:00";
+        }
+        $time_s = '30 minutes';
+        $period_time = new CarbonPeriod($start_times, $time_s, $end_times);
+        $slots = [];
+        foreach ($period_time as $item) {
+            array_push($slots, $item->format("H:i:s"));
+        }
+        $period_date = CarbonPeriod::create(Carbon::now(), Carbon::now()->endOfWeek());
+        $slotsdate = [];
+        $table_start = '<tr class="cal-week-timed"><td class="cal-timezone side text-center">GMT+9</td> ';
+        foreach ($period_date as $key => $date) {
+            $table_start .= '<td class="today text-center">' . date('D n/j', strtotime($date)) . '</td>';
+        }
+        $table_start .= "</tr>";
+        $table = '';
+        foreach ($slots as $s_key => $slot) {
+            $table .= "<tr>";
+            $table .= '<td class="side text-center"><input type="checkbox" name="time[]" value="' . $slot . '" id="time" class="mr-3 d-none">' . date('h:i A', strtotime($slot)) . '</td>';
+            foreach ($period_date as $date) {
+                $data = TeacherSlot::where(['start' => date('Y-m-d', strtotime($date)), 'time' => $slot, 'teacher_id' => $request->teacher_id])->whereIn('status', [1, 2])->pluck('id')->toarray();
+                if (count($data) > 0) {
+                    $check_booking_status = $this->check_my_slot_in_student_booking($data);
+                    if ($check_booking_status['status'] == 1) {
+                        $table .= "<td class='upper border-right " . $check_booking_status['class'] . " on bg-" . $check_booking_status['color'] . " text-center' data-slot='" . $check_booking_status['id'] . "'>" . $check_booking_status['msg'] . "</td>";
+                    } else {
+                        $table .= "<td class='upper border-right on a_slots text-center' data-date='" . date('Y-m-d', strtotime($date)) . "' data-time='" . $slot . "'>A</td>";
+                    }
+                } else {
+                    $table .= "<td class='upper border-right b_slots text-center' data-date='" . date('Y-m-d', strtotime($date)) . "' data-time='" . $slot . "'></td>";
+                }
+            }
+        }
+        $table .= "</tr>";
+        $all_table = $table_start . $table;
+        return response()->json($all_table);
     }
 }

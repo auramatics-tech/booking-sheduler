@@ -562,7 +562,7 @@ Booking Calendar
             },
             url: '{{route("student.cancel_slot_by_student")}}',
             success: function(data) {
-                // history.go(0);
+                history.go(0);
             }
         })
 	})

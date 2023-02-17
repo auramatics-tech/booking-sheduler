@@ -82,7 +82,7 @@ Booking Calendar
                     <li><span class="tab-item get_slots" data-value="evening" aria-selected="false">18:00 - 24:00</span></li>
                 </ul>
                 <ul class="mb-0 d-flex align-items-center pr-4">
-                @role('Teacher')
+                @role('Admin')
                     <li>
                         <div class="dropdown daydrop_down">
                             <button type="button" class="btn btn-primary btn-sm dropdown-toggle" data-toggle="dropdown">
